@@ -1,0 +1,16 @@
+{
+    "mu_c": 0.8,
+    "mu_m": 0.02,
+    "initial_population": 10,
+    "max_population": 200,
+    "steps_per_epoch": 20,
+    "stop_after": 500,
+    "hard_stop": 1000,
+    "data": {
+        "num_processors": 3,
+        "execution_times": {"t1": 2, "t2": 3, "t3": 3, "t4": 4,
+                            "t5": 5, "t6": 4, "t7": 4, "t8": 4, "t9": 1},
+        "constraints": {"t1": 0, "t9": 2}
+    }
+}
+

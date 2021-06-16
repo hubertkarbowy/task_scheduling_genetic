@@ -1,0 +1,17 @@
+{
+    "mu_c": 0.8,
+    "mu_m": 0.02,
+    "initial_population": 10,
+    "max_population": 200,
+    "steps_per_epoch": 20,
+    "stop_after": 500,
+    "hard_stop": 1000,
+    "data": {
+        "num_processors": 5,
+        "execution_times": {"t0": 4, "t1": 2, "t2": 3, "t3": 6, "t4": 2, "t5": 8, "t6": 3, "t7": 4,
+                            "t8": 2, "t9": 1, "t10": 4, "t11": 5, "t12": 6, "t13": 1, "t14": 4, "t15": 4,
+                            "t16": 6, "t17": 8, "t18": 6, "t19": 3, "t20": 9, "t21": 6,
+                            "t22": 10, "t23": 9, "t24": 6, "t25": 10, "t26": 7, "t27": 1, "t28": 10, "t29": 2},
+        "constraints": {"t1": 0, "t9": 2}
+    }
+}
