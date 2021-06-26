@@ -169,60 +169,81 @@ def binary_tournament_selection(*, population: Set[Solution], k: int=2):
         candidates.append(selected)
     return candidates
 
-def main(args):
-    population = initialize(num_processors=args['data']['num_processors'],
-                            execution_times=args['data']['execution_times'],
-                            constraints=args['data']['constraints'],
-                            population_count=args['initial_population'])
-    best = sorted(population)[0].completion_time[1]
-    initial_best = best
-    print(f"Initial best solution: {initial_best}")
-    epoch_counter = 1
-    epochs_without_improvement = 0
-    while epochs_without_improvement < args['stop_after'] and epoch_counter < args['hard_stop']:
-        print(f"================ EPOCH {epoch_counter} =================")
-        found_better = False
-        for step in range(args['steps_per_epoch']):
-            selected = binary_tournament_selection(population=population, k=2)
-            RN = random.random()
-            if RN < args['mu_c']:
-                pass
-            else:
-                RN2 = random.random()
-                if RN2 < 0.5:
-                    offspring1, offspring2 = crossover_map(selected[0], selected[1])
-                else:
-                    offspring1 = crossover_order(selected[0], selected[1])
-                    offspring2 = None
-                for offspring in [offspring1, offspring2]:
-                    if offspring is not None:
-                        mutated = mutate(offspring, args['mu_m'])
-                        if mutated: print(f"******* MUTATION *********")
-                        population.add(offspring)
-                        ct = offspring.completion_time[1]
-                        if ct < best:
-                            print(f">>>>>>>>>> FOUND A BETTER SCHEDULE WITH COMPLETION TIME OF {ct} <<<<<<<<<<<<<")
-                            found_better = True
-                            best = ct
-        if found_better is True:
-            epochs_without_improvement = 0
-        else:
-            epochs_without_improvement += 1
-        population = set(sorted(population)[:args['max_population']])
-        epoch_counter += 1
-    ret = sorted(population)[0]
-    print(f"===================== SUMMARY =========================")
-    print(f"After {epoch_counter} epochs found the best schedule with a value of {ret.completion_time[1]} (initial solution: {initial_best}).")
-    print(f"The schedule is as follows:")
-    print(ret)
-    print(f"=======================================================")
+def main(cfg, run_times):
 
+    iterresults = []
+    for k in range(run_times):
+        args = json.load(open(argz['config'], 'r'))
+        print(args)
+        population = initialize(num_processors=args['data']['num_processors'],
+                                execution_times=args['data']['execution_times'],
+                                constraints=args['data']['constraints'],
+                                population_count=args['initial_population'])
+        best = sorted(population)[0].completion_time[1]
+        best_in_epoch = 0
+        initial_best = best
+        print(f"Initial best solution: {initial_best}")
+        epoch_counter = 1
+        epochs_without_improvement = 0
+        while epochs_without_improvement < args['stop_after'] and epoch_counter < args['hard_stop']:
+            print(f"================ EPOCH {epoch_counter} =================")
+            found_better = False
+            for step in range(args['steps_per_epoch']):
+                selected = binary_tournament_selection(population=population, k=2)
+                RN = random.random()
+                if RN < args['mu_c']:
+                    pass
+                else:
+                    RN2 = random.random()
+                    if RN2 < 0.5:
+                        offspring1, offspring2 = crossover_map(selected[0], selected[1])
+                    else:
+                        offspring1 = crossover_order(selected[0], selected[1])
+                        offspring2 = None
+                    for offspring in [offspring1, offspring2]:
+                        if offspring is not None:
+                            mutated = mutate(offspring, args['mu_m'])
+                            if mutated: print(f"******* MUTATION *********")
+                            population.add(offspring)
+                            ct = offspring.completion_time[1]
+                            if ct < best:
+                                print(f">>>>>>>>>> FOUND A BETTER SCHEDULE WITH COMPLETION TIME OF {ct} <<<<<<<<<<<<<")
+                                found_better = True
+                                best = ct
+                                best_in_epoch = epoch_counter
+            if found_better is True:
+                epochs_without_improvement = 0
+            else:
+                epochs_without_improvement += 1
+            population = set(sorted(population)[:args['max_population']])
+            epoch_counter += 1
+        ret = sorted(population)[0]
+        iterresults.append((epoch_counter, ret.completion_time[1], initial_best, best_in_epoch, ret))
+
+    for k in iterresults:
+        epoch_counter = k[0]
+        completion_time = k[1]
+        initial_best = k[2]
+        best_in_epoch = k[3]
+        ret = k[4]
+        print(f"===================== SUMMARY =========================")
+        print(f"After {epoch_counter} epochs found the best schedule with a value of {completion_time} (initial solution: {initial_best}) in epoch {best_in_epoch}.")
+        print(f"The schedule is as follows:")
+        print(ret)
+        print(f"=======================================================")
+
+    for k in iterresults:
+        epoch_counter = k[0]
+        completion_time = k[1]
+        initial_best = k[2]
+        best_in_epoch = k[3]
+        ret = k[4]
+        print(f"{best_in_epoch};{initial_best}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Schedule parallel tasks on processors using a simple "
                                                  "genetic algorithm")
     parser.add_argument('--config', required=True, help='Path to a .json file with problem description')
+    parser.add_argument('--run-times', type=int, default=1, help='Number of times the algorithm should run')
     argz = vars(parser.parse_args())
-    argz = json.load(open(argz['config'], 'r'))
-    print(argz)
-    main(argz)
+    main(argz['config'], argz['run_times'])
